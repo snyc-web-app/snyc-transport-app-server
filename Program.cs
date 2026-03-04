@@ -32,14 +32,22 @@ using (var scope = app.Services.CreateScope())
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     const string adminRole = "Admin";
+    const string userRole = "User";
     const string demoEmail = "admin@local.test";
     const string demoPassword = "Password123!";
+    const string demoUserEmail = "user@local.test";
+    const string demoUserPassword = "Password123!";
 
     // demo user account
 
     if (!await roleManager.RoleExistsAsync(adminRole))
     {
         await roleManager.CreateAsync(new IdentityRole(adminRole));
+    }
+
+    if (!await roleManager.RoleExistsAsync(userRole))
+    {
+        await roleManager.CreateAsync(new IdentityRole(userRole));
     }
 
     var existingUser = await userManager.FindByEmailAsync(demoEmail);
@@ -59,6 +67,30 @@ using (var scope = app.Services.CreateScope())
     if (existingUser is not null && !await userManager.IsInRoleAsync(existingUser, adminRole))
     {
         await userManager.AddToRoleAsync(existingUser, adminRole);
+    }
+
+    var existingDemoUser = await userManager.FindByEmailAsync(demoUserEmail);
+    if (existingDemoUser is null)
+    {
+        var user = new IdentityUser
+        {
+            UserName = demoUserEmail,
+            Email = demoUserEmail,
+            EmailConfirmed = true
+        };
+
+        await userManager.CreateAsync(user, demoUserPassword);
+        existingDemoUser = user;
+    }
+
+    if (existingDemoUser is not null && !await userManager.IsInRoleAsync(existingDemoUser, userRole))
+    {
+        await userManager.AddToRoleAsync(existingDemoUser, userRole);
+    }
+
+    if (existingDemoUser is not null && await userManager.IsInRoleAsync(existingDemoUser, adminRole))
+    {
+        await userManager.RemoveFromRoleAsync(existingDemoUser, adminRole);
     }
 }
 

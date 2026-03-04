@@ -3,4 +3,4 @@ appsettings.json
 # other generated files
 bin/
 obj/
-.vs/
+.vscode/

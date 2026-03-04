@@ -1,12 +1,19 @@
 @page "/admin"
 @attribute [Authorize(Roles = "Admin")]
 @inject ITransportRequestService TransportRequestService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Admin Dashboard</PageTitle>
 
 <h1>Admin Dashboard</h1>
 
-@if (requests.Count == 0)
+@if (!_canManage)
+{
+    <div class="alert alert-danger" role="alert">
+        You are not authorized to access this page.
+    </div>
+}
+else if (requests.Count == 0)
 {
     <p>No transport requests yet.</p>
 }
@@ -47,20 +54,42 @@ else
 
 @code {
     private List<TransportRequest> requests = new();
+    private bool _canManage;
 
+    @* check if user has admin role *@
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _canManage = authState.User.Identity?.IsAuthenticated == true
+            && authState.User.IsInRole("Admin");
+
+        if (!_canManage)
+        {
+            requests.Clear();
+            return;
+        }
+
         await LoadRequestsAsync();
     }
 
     private async Task UpdateStatusAsync(Guid id, string status)
     {
+        if (!_canManage)
+        {
+            return;
+        }
+
         await TransportRequestService.UpdateStatusAsync(id, status);
         await LoadRequestsAsync();
     }
 
     private async Task DeleteAsync(Guid id)
     {
+        if (!_canManage)
+        {
+            return;
+        }
+
         await TransportRequestService.DeleteAsync(id);
         await LoadRequestsAsync();
     }
