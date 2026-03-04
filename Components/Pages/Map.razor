@@ -1,0 +1,142 @@
+@page "/map"
+@inject IJSRuntime JS
+@using Microsoft.JSInterop
+<div class="contain">
+    <div class="content">
+        <div class="title">Vehicle Route Planner</div>
+        <div class="vehiclecontent">
+            <div class="vehicle1">
+                <h4>Vehicle1(Red)</h4>
+                <input @bind="Car1Place" />
+                <button @onclick="AddCar1" class="add">Add Stop</button>
+                <button @onclick="ClearCar1" class="clear">Clear</button>
+                <br />
+                Fuel Consumption (L/100km):
+                <input type="number" step="0.1" @bind="Car1Consumption" />
+                <br />
+                <button @onclick="CalculateFuelCar1" class="fuel">Estimate Fuel</button>
+                <br />
+                Est Fuel Needed: @Car1Fuel L
+            </div>
+
+
+            <div class="vehicle2">
+                <h4>Vehicle2(Blue)</h4>
+                <input @bind="Car2Place" />
+                <button @onclick="AddCar2" class="add">Add Stop</button>
+                <button @onclick="ClearCar2" class="clear">Clear</button>
+                <br />
+                Fuel Consumption (L/100km):
+                <input type="number" step="0.1" @bind="Car2Consumption" />
+                <br />
+                <button @onclick="CalculateFuelCar2" class="fuel">Estimate Fuel</button>
+                <br />
+                Est Fuel Needed: @Car2Fuel L
+            </div>
+        </div>
+    </div>
+    <!-- Map goes here -->
+     <div id="map" style="height:680px; width:100%;"></div>
+</div>
+
+
+@code {
+//Variables for vehicles, empty cuz no value until you use it on the browser
+string Car1Place = "";
+string Car2Place = "";
+string Car1Distance = "0";
+string Car1Time = "0";
+
+string Car2Distance = "0";
+string Car2Time = "0";
+
+//Fuel area
+double Car1Consumption;
+double Car1Fuel;
+double Car2Consumption;
+double Car2Fuel;
+
+void CalculateFuelCar1()
+{
+    if (double.TryParse(Car1Distance, out double distance))
+    {
+        Car1Fuel = (distance / 100) * Car1Consumption;
+    }
+}
+void CalculateFuelCar2()
+{
+    if (double.TryParse(Car2Distance, out double distance))
+    {
+        Car2Fuel = (distance / 100) * Car2Consumption;
+    }
+}
+
+//Map Area, Importing it
+DotNetObjectReference<Map>? objRef;
+
+protected override async Task OnAfterRenderAsync(bool firstRender)
+{
+    if (firstRender)
+    {
+        objRef = DotNetObjectReference.Create(this);
+        await JS.InvokeVoidAsync("initMap", objRef);
+    }
+}
+
+//Create Points and Routes on each search 
+async Task AddCar1()
+{
+    await JS.InvokeVoidAsync("addVehiclePoint", "car1", "red", Car1Place);
+}
+
+async Task AddCar2()
+{
+    await JS.InvokeVoidAsync("addVehiclePoint", "car2", "blue", Car2Place);
+}
+
+[JSInvokable]
+
+//This contains and display the necessary details of the trip
+public void UpdateRouteInfo(string vehicleId, string distance, string time)
+{
+    if (vehicleId == "car1")
+    {
+        Car1Distance = distance;
+        Car1Time = time;
+    }
+    else if (vehicleId == "car2")
+    {
+        Car2Distance = distance;
+        Car2Time = time;
+    }
+
+    StateHasChanged();
+}
+
+//DELETE ROUTES
+
+async Task ClearCar1()
+{
+    Car1Distance = "0";
+    Car1Time = "0";
+    await JS.InvokeVoidAsync("clearVehicleRoute", "car1");
+}
+
+async Task ClearCar2()
+{
+    Car2Distance = "0";
+    Car2Time = "0";
+    await JS.InvokeVoidAsync("clearVehicleRoute", "car2");
+}
+
+async Task StartCar1()
+{
+    await JS.InvokeVoidAsync("startVehicleAnimation", "car1", "red");
+}
+
+async Task StartCar2()
+{
+    await JS.InvokeVoidAsync("startVehicleAnimation", "car2", "blue");
+}
+
+}

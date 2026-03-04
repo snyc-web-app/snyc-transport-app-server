@@ -1,0 +1,72 @@
+@page "/admin"
+@attribute [Authorize(Roles = "Admin")]
+@inject ITransportRequestService TransportRequestService
+
+<PageTitle>Admin Dashboard</PageTitle>
+
+<h1>Admin Dashboard</h1>
+
+@if (requests.Count == 0)
+{
+    <p>No transport requests yet.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Address</th>
+                <th>Phone</th>
+                <th>Status</th>
+                <th>Requested (UTC)</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var request in requests)
+            {
+                <tr>
+                    <td>@request.Name</td>
+                    <td>@request.Age</td>
+                    <td>@request.Address</td>
+                    <td>@request.PhoneNumber</td>
+                    <td>@request.Status</td>
+                    <td>@request.CreatedAtUtc.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>
+                        <button class="btn btn-sm btn-success me-2" @onclick='() => UpdateStatusAsync(request.Id, "Approved")'>Approve</button>
+                        <button class="btn btn-sm btn-warning me-2" @onclick='() => UpdateStatusAsync(request.Id, "Rejected")'>Reject</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteAsync(request.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<TransportRequest> requests = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRequestsAsync();
+    }
+
+    private async Task UpdateStatusAsync(Guid id, string status)
+    {
+        await TransportRequestService.UpdateStatusAsync(id, status);
+        await LoadRequestsAsync();
+    }
+
+    private async Task DeleteAsync(Guid id)
+    {
+        await TransportRequestService.DeleteAsync(id);
+        await LoadRequestsAsync();
+    }
+
+    private async Task LoadRequestsAsync()
+    {
+        requests = (await TransportRequestService.GetAllAsync()).ToList();
+    }
+}

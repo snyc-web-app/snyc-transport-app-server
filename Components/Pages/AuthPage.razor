@@ -1,0 +1,79 @@
+@page "/auth"
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.WebUtilities
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Authentication</PageTitle>
+
+<h1>Sign In</h1>
+
+@if (!string.IsNullOrWhiteSpace(_errorMessage))
+{
+	<div class="alert alert-danger" role="alert">@_errorMessage</div>
+}
+
+@if (_isAuthenticated)
+{
+	<div class="alert alert-success" role="alert">
+		You are signed in as @_userName.
+	</div>
+	<div class="alert @(_isAdmin ? "alert-info" : "alert-warning")" role="alert">
+		Admin role: @(_isAdmin ? "Yes" : "No")
+	</div>
+
+	<form method="post" action="/auth/logout">
+		<input type="hidden" name="returnUrl" value="/auth" />
+		<button type="submit" class="btn btn-outline-secondary">Log Out</button>
+	</form>
+}
+else
+{
+	<form method="post" action="/auth/login" class="mt-3" style="max-width: 400px;">
+		<input type="hidden" name="returnUrl" value="/" />
+
+		<div class="mb-3">
+			<label for="email" class="form-label">Email</label>
+			<input id="email" name="email" type="email" class="form-control" required />
+		</div>
+
+		<div class="mb-3">
+			<label for="password" class="form-label">Password</label>
+			<input id="password" name="password" type="password" class="form-control" required />
+		</div>
+
+		<div class="form-check mb-3">
+			<input id="rememberMe" name="rememberMe" class="form-check-input" type="checkbox" />
+			<label class="form-check-label" for="rememberMe">Remember me</label>
+		</div>
+
+		<button type="submit" class="btn btn-primary">Log In</button>
+	</form>
+
+	<p class="text-muted mt-3 mb-0">Demo account: admin@local.test / Password123!</p>
+}
+
+@code {
+	private bool _isAuthenticated;
+	private bool _isAdmin;
+	private string? _userName;
+	private string? _errorMessage;
+
+	protected override async Task OnInitializedAsync()
+	{
+		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+		_isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
+		_isAdmin = authState.User.IsInRole("Admin");
+		_userName = authState.User.Identity?.Name;
+
+		var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+		if (!string.IsNullOrWhiteSpace(uri.Query))
+		{
+			var query = QueryHelpers.ParseQuery(uri.Query);
+			if (query.TryGetValue("error", out var value))
+			{
+				_errorMessage = value.ToString();
+			}
+		}
+	}
+}
