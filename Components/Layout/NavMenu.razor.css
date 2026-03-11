@@ -89,3 +89,7 @@
         overflow-y: auto;
     }
 }
+
+.logo{
+    height: 50px;
+}
