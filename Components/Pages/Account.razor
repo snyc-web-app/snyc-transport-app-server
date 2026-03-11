@@ -1,0 +1,35 @@
+@page "/account"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Account</PageTitle>
+
+<h1>Account</h1>
+
+<div class="alert alert-success" role="alert">
+    Signed in as <strong>@_userName</strong>
+</div>
+
+<div class="alert @(_isAdmin ? "alert-info" : "alert-warning")" role="alert">
+    Admin role: @(_isAdmin ? "Yes" : "No")
+</div>
+
+<form method="post" action="/auth/logout">
+    <input type="hidden" name="returnUrl" value="/" />
+    <button type="submit" class="btn btn-outline-secondary">Sign Out</button>
+</form>
+
+@code {
+    private bool _isAdmin;
+    private string _userName = "Unknown user";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        _isAdmin = user.IsInRole("Admin");
+        _userName = user.Identity?.Name ?? "Unknown user";
+    }
+}

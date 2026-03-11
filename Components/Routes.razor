@@ -3,10 +3,10 @@
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
                 <NotAuthorized>
-                    <LayoutView Layout="typeof(Layout.MainLayout)">
+                    <LayoutView Layout="typeof(Layout.AuthLayout)">
                         <h1>Not authorized</h1>
                         <p>Please sign in to continue.</p>
-                        <a class="btn btn-primary" href="/auth">Go to Sign In</a>
+                        <a class="btn btn-primary" href="/">Go to Sign In</a>
                     </LayoutView>
                 </NotAuthorized>
             </AuthorizeRouteView>

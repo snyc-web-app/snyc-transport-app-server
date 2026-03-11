@@ -128,16 +128,16 @@ app.MapPost("/auth/login", async (HttpContext httpContext, SignInManager<Identit
 
     if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
     {
-        return Results.LocalRedirect("/auth?error=Please+enter+email+and+password");
+        return Results.LocalRedirect("/?error=Please+enter+email+and+password");
     }
 
     var result = await signInManager.PasswordSignInAsync(email, password, rememberMe, lockoutOnFailure: false);
     if (!result.Succeeded)
     {
-        return Results.LocalRedirect("/auth?error=Invalid+email+or+password");
+        return Results.LocalRedirect("/?error=Invalid+email+or+password");
     }
 
-    return Results.LocalRedirect(string.IsNullOrWhiteSpace(returnUrl) ? "/" : returnUrl);
+    return Results.LocalRedirect(string.IsNullOrWhiteSpace(returnUrl) ? "/home" : returnUrl);
 });
 
 app.MapPost("/auth/logout", async (HttpContext httpContext, SignInManager<IdentityUser> signInManager) =>
@@ -146,7 +146,7 @@ app.MapPost("/auth/logout", async (HttpContext httpContext, SignInManager<Identi
 
     var form = await httpContext.Request.ReadFormAsync();
     var returnUrl = form["returnUrl"].ToString();
-    return Results.LocalRedirect(string.IsNullOrWhiteSpace(returnUrl) ? "/auth" : returnUrl);
+    return Results.LocalRedirect(string.IsNullOrWhiteSpace(returnUrl) ? "/" : returnUrl);
 });
 
 app.MapRazorPages();
