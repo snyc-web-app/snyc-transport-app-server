@@ -1,5 +1,5 @@
 # currently has database tokens, ignore for now
-appsettings.json
+appsettings.Development.json
 # other generated files
 bin/
 obj/

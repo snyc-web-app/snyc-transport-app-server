@@ -20,7 +20,17 @@ builder.Services
 builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
 
-builder.Services.AddSingleton<ITransportRequestService, InMemoryTransportRequestService>();
+var tursoUrl = builder.Configuration["Turso:Url"];
+var tursoAuthToken = builder.Configuration["Turso:AuthToken"];
+
+if (!string.IsNullOrWhiteSpace(tursoUrl) && !string.IsNullOrWhiteSpace(tursoAuthToken))
+{
+    builder.Services.AddSingleton<ITransportRequestService, TursoTransportRequestService>();
+}
+else
+{
+    builder.Services.AddSingleton<ITransportRequestService, InMemoryTransportRequestService>();
+}
 
 var app = builder.Build();
 

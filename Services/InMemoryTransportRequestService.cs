@@ -4,25 +4,29 @@ namespace SNYC_Transport.Services;
 
 public class InMemoryTransportRequestService : ITransportRequestService
 {
-    private readonly List<TransportRequest> requests = new();
+    private readonly List<TransportRequests> requests = new();
 
-    public Task<IReadOnlyList<TransportRequest>> GetAllAsync()
+    public Task<IReadOnlyList<TransportRequests>> GetAllAsync()
     {
-        IReadOnlyList<TransportRequest> result = requests
-            .OrderByDescending(r => r.CreatedAtUtc)
+        IReadOnlyList<TransportRequests> result = requests
+            .OrderByDescending(r => r.UpdatedAtUtc)
             .ToList();
 
         return Task.FromResult(result);
     }
 
-    public Task<TransportRequest> CreateAsync(TransportRequestInput input)
+    public Task<TransportRequests> CreateAsync(TransportRequestInput input)
     {
-        var request = new TransportRequest
+        var request = new TransportRequests
         {
-            Name = input.Name.Trim(),
-            Age = input.Age ?? 0,
-            Address = input.Address.Trim(),
-            PhoneNumber = input.PhoneNumber.Trim()
+            UserId = input.UserId ?? Guid.Empty,
+            Destination = input.Destination.Trim(),
+            passengerCount = input.PassengerCount ?? 1,
+            status = "Pending",
+            complianceStatus = "Pending",
+            adminStatus = "Pending",
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow
         };
 
         requests.Add(request);
@@ -37,7 +41,9 @@ public class InMemoryTransportRequestService : ITransportRequestService
             return Task.FromResult(false);
         }
 
-        request.Status = status;
+        request.status = status;
+        request.adminStatus = status;
+        request.UpdatedAtUtc = DateTime.UtcNow;
         return Task.FromResult(true);
     }
 
